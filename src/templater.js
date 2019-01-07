@@ -72,6 +72,54 @@ var Templater = function(list) {
       } else if (valueNames[i].attr && valueNames[i].name) {
         elm = list.utils.getByClass(item.elm, valueNames[i].name, true);
         values[valueNames[i].name] = elm ? list.utils.getAttribute(elm, valueNames[i].attr) : "";
+      } else if (valueNames[i].children && valueNames[i].name) {
+        // If the valueName has children specified.
+        // Then we expect an array of data.
+        values[valueNames[i].name] = [];
+        // Find the container of the children.
+        elm = list.utils.getByClass(item.elm, valueNames[i].name, true);
+        if (elm) {
+          // If the container exists then we create the child element and get its <tag> name.
+          // NOTE this means that a HTML representation of the child needs to be supplied
+          // on valueNames[i].children.item. This decision is for brevity. Maybe if it
+          // becomes necessary we can look for a child template by ID or find the
+          // first child but for now we won't.
+          var div = document.createElement('div');
+          div.innerHTML = valueNames[i].children.item;
+          var childItemTagName = div.firstChild.tagName;
+          // Loop through all the elements childNodes and for any elements matching
+          // the tag name we get the values from them.
+          var nodes = elm.childNodes;
+          for (var k = 0, kl = nodes.length; k < kl; k++) {
+            var childValues = null;
+            // Only textnodes have a data attribute.
+            // If the childItemTagName matches the childNode.tag name then
+            // we know it is an element of interest and therefore will
+            // extract the childValues from it.
+            if (nodes[k].data === undefined && nodes[k].tagName === childItemTagName) {
+              childValues = {};
+              for (var s = 0, sl = valueNames[i].children.valueNames.length; s < sl; s++) {
+                var valueName = valueNames[i].children.valueNames;
+                var childElm;
+                if (valueName.data) {
+                  for (var p = 0, pl = valueName.data.length; p < pl; p++) {
+                    childValues[valueName.data[p]] = list.utils.getAttribute(nodes[k], 'data-'+valueName.data[p]);
+                  }
+                } else if (valueName.attr && valueName.name) {
+                  childElm = list.utils.getByClass(nodes[k], valueName.name, true);
+                  childValues[valueName.name] = childElm ? list.utils.getAttribute(childElm, valueName.attr) : "";
+                } else {
+                  childElm = list.utils.getByClass(nodes[k], valueName, true);
+                  childValues[valueName] = childElm ? childElm.innerHTML : "";
+                }
+                childElm = undefined;
+              }
+            }
+            if(childValues) {
+              values[valueNames[i].name].push(childValues);
+            }
+          }
+        }
       } else {
         elm = list.utils.getByClass(item.elm, valueNames[i], true);
         values[valueNames[i]] = elm ? elm.innerHTML : "";
