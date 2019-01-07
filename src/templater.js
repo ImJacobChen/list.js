@@ -73,6 +73,10 @@ var Templater = function(list) {
         elm = list.utils.getByClass(item.elm, valueNames[i].name, true);
         values[valueNames[i].name] = elm ? list.utils.getAttribute(elm, valueNames[i].attr) : "";
       } else if (valueNames[i].children && valueNames[i].name) {
+
+        /********************************************************
+         * UPDATE added here to getting of item children values.
+         */
         // If the valueName has children specified.
         // Then we expect an array of data.
         values[valueNames[i].name] = [];
@@ -120,6 +124,10 @@ var Templater = function(list) {
             }
           }
         }
+        /********************************************************
+         * END UPDATE
+         */
+
       } else {
         elm = list.utils.getByClass(item.elm, valueNames[i], true);
         values[valueNames[i]] = elm ? elm.innerHTML : "";
@@ -130,25 +138,27 @@ var Templater = function(list) {
   };
 
   this.set = function(item, values) {
-    var getValueName = function(name) {
-      for (var i = 0, il = list.valueNames.length; i < il; i++) {
-        if (list.valueNames[i].data) {
-          var data = list.valueNames[i].data;
+    var getValueName = function(name, valueNames) {
+      for (var i = 0, il = valueNames.length; i < il; i++) {
+        if (valueNames[i].data) {
+          var data = valueNames[i].data;
           for (var j = 0, jl = data.length; j < jl; j++) {
             if (data[j] === name) {
               return { data: name };
             }
           }
-        } else if (list.valueNames[i].attr && list.valueNames[i].name && list.valueNames[i].name == name) {
-          return list.valueNames[i];
-        } else if (list.valueNames[i] === name) {
+        } else if (valueNames[i].attr && valueNames[i].name && valueNames[i].name == name) {
+          return valueNames[i];
+        } else if (valueNames[i].children && valueNames[i].name && valueNames[i].name == name) {
+            return valueNames[i];
+        } else if (valueNames[i] === name) {
           return name;
         }
       }
     };
     var setValue = function(name, value) {
       var elm;
-      var valueName = getValueName(name);
+      var valueName = getValueName(name, list.valueNames);
       if (!valueName)
         return;
       if (valueName.data) {
@@ -158,6 +168,59 @@ var Templater = function(list) {
         if (elm) {
           elm.setAttribute(valueName.attr, value);
         }
+      } else if (valueName.children && valueName.name) {
+
+        /********************************************************
+         * UPDATE added here to allow rendering of item children
+         */
+        elm = list.utils.getByClass(item.elm, valueName.name, true);
+        if (elm) {
+          var div = document.createElement('div');
+          div.innerHTML = valueName.children.item;
+          var childItem = div.firstChild;
+          var childItemTagName = childItem.tagName;
+          var elmChildNodes = elm.getElementsByTagName(childItemTagName);
+          for (var i = 0, il = value.length; i < il; i++) {
+            var childNodeAlreadyExists = false;
+            var childNode;
+            if (elmChildNodes.item(i) !== null) {
+              childNodeAlreadyExists = true;
+              childNode = elmChildNodes.item(i);
+            } else {
+              childNode = childItem.cloneNode(true);
+            }
+            for(var v in value[i]) {
+              if (value[i].hasOwnProperty(v)) {
+                var childNodeElm;
+                var childValueName = getValueName(v, valueName.children.valueNames);
+                if (!childValueName)
+                    return;
+                if (childValueName.data) {
+                    childNode.setAttribute('data-'+childValueName.data, value[i][v]);
+                } else if (childValueName.attr && childValueName.name) {
+                    childNodeElm = list.utils.getByClass(childNode, childValueName.name, true);
+                    if (childNodeElm) {
+                        childNodeElm.setAttribute(childValueName.attr, value[i][v]);
+                    }
+                } else {
+                    childNodeElm = list.utils.getByClass(childNode, childValueName, true);
+                    if (childNodeElm) {
+                        childNodeElm.innerHTML = value[i][v];
+                    }
+                }
+                childNodeElm = undefined;
+              }
+            }
+            if (!childNodeAlreadyExists) {
+              elm.appendChild(childNode);
+            }
+            childNode = undefined;
+          }
+        }
+        /********************************************************
+         * END UPDATE
+         */
+
       } else {
         elm = list.utils.getByClass(item.elm, valueName, true);
         if (elm) {

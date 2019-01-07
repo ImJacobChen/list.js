@@ -6,7 +6,8 @@ var naturalSort = require('string-natural-compare'),
   toString = require('./utils/to-string'),
   classes = require('./utils/classes'),
   getAttribute = require('./utils/get-attribute'),
-  toArray = require('./utils/to-array');
+  toArray = require('./utils/to-array'),
+  arrayHasChildWithProperty = require('./utils/array-has-child-with-property');
 
 module.exports = function(id, options, values) {
 
@@ -40,7 +41,8 @@ module.exports = function(id, options, values) {
         naturalSort: naturalSort,
         classes: classes,
         getAttribute: getAttribute,
-        toArray: toArray
+        toArray: toArray,
+        arrayHasChildWithProperty: arrayHasChildWithProperty
       };
 
       self.utils.extend(self, options);
