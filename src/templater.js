@@ -77,6 +77,7 @@ var Templater = function(list) {
         /********************************************************
          * UPDATE added here to getting of item children values.
          */
+
         // If the valueName has children specified.
         // Then we expect an array of data.
         values[valueNames[i].name] = [];
@@ -103,7 +104,7 @@ var Templater = function(list) {
             if (nodes[k].data === undefined && nodes[k].tagName === childItemTagName) {
               childValues = {};
               for (var s = 0, sl = valueNames[i].children.valueNames.length; s < sl; s++) {
-                var valueName = valueNames[i].children.valueNames;
+                var valueName = valueNames[i].children.valueNames[s];
                 var childElm;
                 if (valueName.data) {
                   for (var p = 0, pl = valueName.data.length; p < pl; p++) {
@@ -124,6 +125,7 @@ var Templater = function(list) {
             }
           }
         }
+
         /********************************************************
          * END UPDATE
          */

@@ -50,8 +50,11 @@
   ],
   "jest": {
     "coverageDirectory": "./coverage/",
-    "collectCoverage": true,
-    "collectCoverageFrom": ["src/*.js", "src/utils/*.js"],
+    "collectCoverage": false,
+    "collectCoverageFrom": [
+      "src/*.js",
+      "src/utils/*.js"
+    ],
     "testURL": "http://localhost/"
   }
 }
